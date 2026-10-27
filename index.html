@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Trivia de Primeros Auxilios</title>
+  <style>
+    :root {
+      --bg-dark: #022c22;
+      --bg-card: #064e3b;
+      --bg-card-light: #047857;
+      --accent-green: #10b981;
+      --accent-emerald: #34d399;
+      --correct: #059669;
+      --incorrect: #dc2626;
+      --text-main: #f0fdf4;
+      --text-muted: #a7f3d0;
+      --gold: #fbbf24;
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      touch-action: manipulation;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(10px, 3vw, 20px);
+      padding-top: max(10px, env(safe-area-inset-top));
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      padding-left: max(10px, env(safe-area-inset-left));
+      padding-right: max(10px, env(safe-area-inset-right));
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-light);
+      border-radius: 20px;
+      padding: clamp(16px, 4vw, 24px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s ease;
+    }
+
+    /* TYPOGRAPHY & UTILS */
+    h1 { font-size: clamp(1.6rem, 5vw, 2.2rem); text-align: center; color: var(--accent-emerald); margin-bottom: 8px; }
+    h2 { font-size: clamp(1.2rem, 4vw, 1.5rem); color: var(--text-main); margin-bottom: 12px; }
+    p { font-size: clamp(0.95rem, 3.5vw, 1.05rem); line-height: 1.5; color: var(--text-muted); }
+    em { font-style: italic; color: var(--accent-emerald); }
+    .badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-emerald);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin: 4px;
+    }
+    .flex-center { display: flex; justify-content: center; align-items: center; }
+    .hidden { display: none !important; }
+
+    /* BUTTONS */
+    .btn {
+      width: 100%;
+      min-height: 60px;
+      background: var(--bg-card-light);
+      border: 2px solid var(--accent-green);
+      color: var(--text-main);
+      border-radius: 14px;
+      font-size: clamp(1rem, 3.5vw, 1.1rem);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 0.15s ease;
+      text-align: left;
+      position: relative;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: var(--accent-green);
+      color: #000;
+      border: none;
+      font-weight: 700;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    .btn-primary:hover { background: var(--accent-emerald); }
+    .btn-key {
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      margin-right: 10px;
+      color: var(--accent-emerald);
+      border: 1px solid var(--accent-green);
+    }
+
+    /* HEADER & STATS */
+    .header-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+    .stat-box { display: flex; align-items: center; gap: 6px; }
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-emerald));
+      transition: width 0.3s ease;
+    }
+
+    /* OPTIONS LIST */
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .btn-option.correct {
+      background: var(--correct) !important;
+      border-color: #34d399 !important;
+      color: #fff !important;
+    }
+    .btn-option.incorrect {
+      background: var(--incorrect) !important;
+      border-color: #f87171 !important;
+      color: #fff !important;
+    }
+    .btn-option.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* FEEDBACK PANEL */
+    .feedback-panel {
+      margin-top: 15px;
+      padding: 14px;
+      border-radius: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+    .feedback-panel.correct { background: rgba(5, 150, 105, 0.2); border: 1px solid var(--correct); }
+    .feedback-panel.incorrect { background: rgba(220, 38, 38, 0.2); border: 1px solid var(--incorrect); }
+    .feedback-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 6px; }
+    .explanation { font-size: 0.9rem; color: #e2e8f0; margin-top: 8px; line-height: 1.4; }
+
+    /* HUMOR & SURPRISE CARDS */
+    .humor-card {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px dashed var(--gold);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #fef08a;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* MODAL SURPRISE */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-content {
+      background: var(--bg-card);
+      border: 2px solid var(--gold);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .modal-icon { font-size: 3rem; margin-bottom: 10px; }
+
+    /* CANVAS CONFETTI */
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="container">
+
+    <!-- PANTALLA 1: BIENVENIDA -->
+    <div id="screen-welcome" class="card flex-center" style="flex-direction: column; text-align: center; gap: 15px; min-height: 80vh;">
+      <div style="font-size: 4rem;">🩺</div>
+      <h1>Trivia de Primeros Auxilios</h1>
+      <p style="color: var(--accent-emerald); font-weight: 600;">Asistencia de primeros auxilios en centros docentes / M-Learning</p>
+      
+      <div style="margin: 10px 0;">
+        <span class="badge">🫀 RCP</span>
+        <span class="badge">🩹 Heridas</span>
+        <span class="badge">🚑 Emergencias</span>
+      </div>
+
+      <p>Demuestra tus conocimientos técnicos e instruccionales. Responde preguntas interactivas, suma rachas de aciertos y descubre sorpresas especiales en el camino.</p>
+
+      <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; font-size: 0.85rem; color: var(--text-muted); width: 100%;">
+        ⚡ <strong>Preguntas y opciones aleatorias</strong> en cada partida.<br>
+        🎁 Incluye potentes sorpresas, multiplicadores y comodines.
+      </div>
+
+      <button id="btn-start" class="btn btn-primary" style="margin-top: 15px;">
+        🚀 ¡Iniciar Desafío!
+      </button>
+    </div>
+
+    <!-- PANTALLA 2: JUEGO -->
+    <div id="screen-game" class="hidden" style="display: flex; flex-direction: column; gap: 12px;">
+      <!-- Stats Header -->
+      <div class="header-stats">
+        <div class="stat-box"><span id="txt-score">Puntos: 0</span></div>
+        <div class="stat-box" style="color: var(--gold);"><span id="txt-streak">🔥 Racha: x1</span></div>
+        <div class="stat-box"><span id="txt-progress">1/30</span></div>
+      </div>
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="card" style="padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span id="badge-block" class="badge">Bloque</span>
+          <span id="badge-surprise" class="badge hidden" style="background: rgba(251, 191, 36, 0.2); border-color: var(--gold); color: var(--gold);">⚡ Doble Puntuación</span>
+        </div>
+        <h2 id="txt-question" style="font-size: 1.1rem; line-height: 1.4;">Texto de la pregunta...</h2>
+
+        <!-- Options -->
+        <div id="options-container" class="options-grid"></div>
+
+        <!-- Feedback Area -->
+        <div id="feedback-panel" class="feedback-panel hidden">
+          <div id="feedback-title" class="feedback-title"></div>
+          <div id="feedback-explanation" class="explanation"></div>
+          <div id="humor-card" class="humor-card hidden">
+            <span>😂</span>
+            <span id="humor-text"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button Area (Thumb Zone) -->
+      <div style="margin-top: auto; padding-top: 10px;">
+        <button id="btn-next" class="btn btn-primary hidden">
+          <span>Siguiente Pregunta</span> ➔
+        </button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 3: RESULTADOS -->
+    <div id="screen-results" class="card hidden flex-center" style="flex-direction: column; text-align: center; gap: 15px;">
+      <div style="font-size: 3.5rem;" id="res-emoji">🏆</div>
+      <h1>¡Desafío Finalizado!</h1>
+      <p id="res-message" style="font-weight: 600; color: var(--accent-emerald); font-size: 1.1rem;">¡Excelente trabajo!</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin: 10px 0;">
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Puntos Totales</div>
+          <div id="res-score" style="font-size: 1.4rem; font-weight: bold; color: var(--gold);">0</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Aciertos</div>
+          <div id="res-accuracy" style="font-size: 1.4rem; font-weight: bold; color: var(--accent-green);">0/30 (0%)</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Mejor Racha</div>
+          <div id="res-streak" style="font-size: 1.4rem; font-weight: bold; color: #f97316;">🔥 0</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Sorpresas Halladas</div>
+          <div id="res-surprises" style="font-size: 1.4rem; font-weight: bold; color: #a855f7;">🎁 0</div>
+        </div>
+      </div>
+
+      <button id="btn-restart" class="btn btn-primary">
+        🔄 Reintentar Desafío
+      </button>
+    </div>
+
+  </div>
+
+  <!-- MODAL DE SORPRESA INICIAL -->
+  <div id="modal-surprise" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div id="modal-icon" class="modal-icon">🎁</div>
+      <h3 id="modal-title" style="color: var(--gold); margin-bottom: 8px;">¡Sorpresa Activada!</h3>
+      <p id="modal-desc" style="margin-bottom: 18px; color: #fff;">Has obtenido un bono especial para esta pregunta.</p>
+      <button id="modal-btn" class="btn btn-primary" style="min-height: 48px;">¡Vamos!</button>
+    </div>
+  </div>
+
+  <script>
+    // --- BASE DE DATOS DE PREGUNTAS ---
+    const rawQuestions = [
+      // Bloque 1
+      { block: "Padlet", q: "¿Qué formato de tablero en Padlet resulta especialmente útil para organizar flujos de trabajo por fases o salas de grupos en Zoom?", options: ["A) El formato de cronología lineal o mapa de tiempo.", "B) El formato de transmisión en streaming horizontal 16:9.", "C) El formato columna (Kanban)", "D) El formato de diapositiva estática cerrada."], correct: 2, exp: "El tablero tipo Kanban estructura la información en columnas verticales, permitiendo organizar tareas, fases de proyectos o aportaciones por grupos de manera muy visual y limpia en pantallas móviles." },
+      { block: "Padlet", q: "¿Qué mecanismo de moderación y coevaluación (Peer Assessment) se puede activar en un muro de Padlet?", options: ["A) La obligación de registrarse con certificado digital obligatorio.", "B) Las reacciones sociales como \"Me gusta\", votación con estrellas o puntuación numérica", "C) La desactivación automática de cualquier conexión Wi-Fi en el aula.", "D) El bloqueo permanente de la cámara del smartphone."], correct: 1, exp: "Activar las reacciones y votaciones permite que los alumnos evalúen y valoren de forma constructiva las aportaciones de sus compañeros directamente en el muro compartido." },
+      { block: "Padlet", q: "¿Por qué destaca Padlet en el marco del modelo BYOD (Bring Your Own Device) para Formación para el Empleo?", options: ["A) Porque requiere obligatoriamente la instalación previa de un servidor local pesado.", "B) Por su excelente diseño web adaptativo (Responsive) y su facilidad de uso táctil sin fricciones", "C) Porque solo permite la participación exclusiva desde ordenadores de sobremesa.", "D) Porque cifra de forma militar todos los mensajes de texto privados."], correct: 1, exp: "Padlet permite a los alumnos acceder instantáneamente mediante navegador web móvil o app sin registros complejos, facilitando la subida multimedia instantánea desde el smartphone." },
+      // Bloque 2
+      { block: "Miro / Mural", q: "¿Cuál es el propósito instruccional principal del uso de Miro o Mural en el aula digital?", options: ["A) Sustituir los editores de vídeo vertical en formato 9:16.", "B) Facilitar la co-creación de esquemas complejos, diagramas y mapas visuales en lienzos infinitos", "C) Enviar correos electrónicos masivos automatizados a la empresa.", "D) Realizar un control de asistencia biométrica obligatoria."], correct: 1, exp: "Estas herramientas ofrecen lienzos gigantescos ideales para metodologías ágiles y Thinking Based Learning, donde múltiples usuarios organizan conceptos abstractos simultáneamente." },
+      { block: "Miro / Mural", q: "¿Qué destreza de pensamiento o dinámica metodológica encaja de forma excelente con el uso de estas pizarras infinitas?", options: ["A) La grabación de micro-podcasts sonoros en formato MP3.", "B) El mapeo visual de ideas, tormentas de lluvias de ideas y estructuración de \"Las Partes y el Todo\"", "C) El cálculo de la tarifa de datos móviles de los estudiantes.", "D) La reproducción de secuencias de vídeo en bucle silencioso."], correct: 1, exp: "Permiten agrupar post-its, trazar conectores lógicos y descomponer sistemas complejos de manera muy colaborativa y espacial." },
+      { block: "Miro / Mural", q: "¿Qué precaución técnica debe tenerse en cuenta al utilizar Miro o Mural con dispositivos móviles (smartphones de gama media/baja)?", options: ["A) No funcionan en ningún navegador que no sea de pago.", "B) Exigen obligatoriamente conectar un ratón físico por USB.", "C) Su alta carga de elementos gráficos y vectores exige una buena optimización para evitar ralentizaciones (lag)", "D) Bloquean automáticamente la pantalla si se usa el dedo pulgar."], correct: 2, exp: "Al ser pizarras infinitas tan pesadas y ricas en recursos visuales, en terminales muy antiguos o con poca RAM se deben emplear con precaución o usar vistas simplificadas." },
+      // Bloque 3
+      { block: "Canva Whiteboards", q: "¿Qué ventaja aporta Canva Whiteboards en comparación con una pizarra digital de texto plano?", options: ["A) Convierte automáticamente la voz del profesor en subtítulos en 3D.", "B) Permite integrar elementos gráficos, pegatinas, iconos y recursos de diseño de forma simultánea", "C) Limita la participación a un solo usuario administrador por sesión.", "D) Requiere el uso de licencias corporativas muy costosas."], correct: 1, exp: "Al estar conectada al ecosistema de diseño de Canva, enriquece las pizarras con una enorme variedad visual, formas y recursos gráficos para dinamizar el trabajo en equipo." },
+      { block: "Canva Whiteboards", q: "¿Cómo pueden interactuar los participantes de una clase en Canva Whiteboards desde sus teléfonos móviles?", options: ["A) Únicamente mediante comandos de voz cifrados.", "B) Añadiendo post-its, conectores, formas y votando mediante pegatinas o emoticonos en tiempo real", "C) Leyendo exclusivamente un documento estático en formato PDF.", "D) Descargando un archivo comprimido en formato SCORM."], correct: 1, exp: "Permite una interacción multiusuario muy ágil y táctil, ideal para que los grupos co-creen esquemas y voten propuestas colectivas rápidamente." },
+      { block: "Canva Whiteboards", q: "¿Qué principio de usabilidad móvil debe vigilar el docente si el alumnado diseña o edita en Canva Whiteboards desde pantallas pequeñas?", options: ["A) La obligación de usar exclusivamente el teclado numérico.", "B) La gestión del espacio de trabajo y los gestos de zoom (pinch-to-zoom), ya que los elementos pequeños exigen precisión", "C) La desactivación de la conexión Bluetooth del terminal.", "D) La prohibición de utilizar colores corporativos."], correct: 1, exp: "Al ser herramientas de edición visual con barras de herramientas flotantes, en pantallas de smartphone pequeñas puede requerir mayor destreza gestual." },
+      // Bloque 4
+      { block: "Mentimeter", q: "¿Cuál es el uso didáctico estrella de la opción \"Word Cloud\" (Nube de palabras) en Mentimeter al inicio de una sesión?", options: ["A) Evaluar con nota numérica y punitiva el examen final del módulo.", "B) Extraer ideas previas, romper el sesgo de participación y diagnosticar conceptos iniciales de forma visual", "C) Reproducir un vídeo vertical con subtítulos automáticos.", "D) Generar un informe de auditoría RGPD automatizado."], correct: 1, exp: "Permite que todos escriban 1 o 3 palabras desde el móvil, visualizando al instante en pantalla qué conceptos generan mayor consenso (palabras más grandes)." },
+      { block: "Mentimeter", q: "¿Qué requisito técnico de acceso exigen herramientas como Mentimeter para cumplir con el modelo BYOD sin fricciones?", options: ["A) Que el alumno cree una cuenta de pago con tarjeta de crédito obligatoria.", "B) Acceder mediante un simple código PIN numérico o código QR desde el navegador web del móvil", "C) Instalar un software MDM de control remoto en el terminal.", "D) Configurar un servidor local de red privada virtual (VPN)."], correct: 1, exp: "El acceso inmediato mediante PIN en menti.com elimina cualquier barrera de registro, logrando una participación masiva en segundos." },
+      { block: "Mentimeter", q: "¿Qué limitación principal presenta la versión gratuita (Free) de Mentimeter en su estructura de diapositivas?", options: ["A) No permite la participación de más de 2 alumnos por sesión.", "B) Exige el uso obligatorio de ordenadores portátiles con Windows.", "C) Limita el número de preguntas interactivas (tipo test o votación) permitidas por presentación", "D) Borra automáticamente los resultados a los 5 minutos."], correct: 2, exp: "El plan gratuito restringe el número de preguntas de interacción por presentación, obligando al docente a planificar presentaciones cortas o combinarlas." },
+      // Bloque 5
+      { block: "Slido", q: "¿Cuál es la funcionalidad más potente y destacada de Slido en el ámbito de las clases online o videoclases multitudinarias?", options: ["A) La edición multipista de vídeo vertical en 9:16.", "B) La sección de Q&A (Preguntas y Respuestas) con votación de los participantes para jerarquizar dudas", "C) La creación automática de mapas mentales jerárquicos de Swartz.", "D) El bloqueo de cámaras de los estudiantes díscolos."], correct: 1, exp: "Slido brilla permitiendo que los alumnos envíen dudas y voten las de sus compañeros (\"pulgar arriba\"), haciendo que las preguntas más relevantes suban al primer puesto." },
+      { block: "Slido", q: "¿Cómo acceden los estudiantes a los sondeos o espacios de preguntas en Slido desde sus dispositivos móviles?", options: ["A) Mediante llamada telefónica de tarificación especial.", "B) Mediante la instalación de una aplicación de escritorio pesada.", "C) Escaneando un código QR o introduciendo un código de evento en la web móvil", "D) Entrando exclusivamente a través de la plataforma Moodle del centro."], correct: 2, exp: "Respeta escrupulosamente la filosofía BYOD y ligera del M-Learning, sin requerir registros pesados ni descargas." },
+      { block: "Slido", q: "Desde una perspectiva de analítica formativa en directo, ¿qué permite hacer Slido tras finalizar la sesión?", options: ["A) Bloquear los smartphones de los alumnos de forma remota.", "B) Exportar informes detallados de las preguntas, sondeos y respuestas en formato tabular o analítico", "C) Imprimir automáticamente los diplomas de aprovechamiento en papel.", "D) Borrar el rastro de participación para cumplir con el RGPD de forma estricta."], correct: 1, exp: "Facilita la explotación de datos posteriores para que el docente audite qué preguntas causaron mayor confusión en el grupo." },
+      // Bloque 6
+      { block: "Quizizz", q: "¿Qué característica pedagógica distingue a Quizizz frente a herramientas de concurso sincrónico rígido como Kahoot!?", options: ["A) Obliga a que toda la clase responda a la vez en la misma décima de segundo.", "B) No permite incluir ningún tipo de imagen ni color corporativo.", "C) Los alumnos responden a su propio ritmo directamente desde la pantalla de su dispositivo móvil", "D) Solo se puede utilizar en modalidad presencial sin conexión a internet."], correct: 2, exp: "Quizizz permite que cada estudiante avance individualmente a su ritmo en su smartphone, reduciendo la ansiedad del marcador colectivo en pantalla gigante." },
+      { block: "Quizizz", q: "¿Qué elementos de refuerzo lúdico y motivacional integra Quizizz durante la realización del cuestionario?", options: ["A) Sanciones económicas y pérdida de puntos de perfil.", "B) Memes humorísticos contextuales, potenciadores (power-ups) y tablas de clasificación dinámicas", "C) Llamadas de atención por voz del profesor de forma automática.", "D) Publicación obligatoria de los resultados en redes sociales abiertas."], correct: 1, exp: "Los memes y potenciadores incrementan la motivación intrínseca y el compromiso lúdico, haciendo que la evaluación formativa sea un entorno de bajo riesgo (low-stakes)." },
+      { block: "Quizizz", q: "¿Cómo apoya Quizizz la aplicación del \"Testing Effect\" (Efecto de Prueba) en el modelo Flipped Classroom?", options: ["A) Sustituyendo por completo la explicación teórica del docente.", "B) Forzando al cerebro a recuperar activamente información mediante preguntas cortas con feedback inmediato", "C) Convirtiendo los apuntes en archivos de audio comprimidos en MP3.", "D) Bloqueando el acceso a la plataforma si el alumno falla dos veces."], correct: 1, exp: "Funciona como una excelente herramienta de práctica de recuperación tanto para el diagnóstico previo como para comprobar la asimilación de la lección." },
+      // Bloque 7
+      { block: "Socrative", q: "¿Qué modalidad de Socrative resulta ideal para aplicar al final de una clase como \"Exit Ticket\" (Ticket de Salida)?", options: ["A) La carrera espacial por equipos en pantalla gigante.", "B) El modo de presentación de diapositivas estáticas en 16:9.", "C) El cuestionario breve estructurado con preguntas de autoevaluación, concepto clave y aplicación", "D) El modo de edición gráfica de infografías verticales."], correct: 2, exp: "El Exit Ticket de Socrative permite lanzar los tres ítems clásicos de cierre (qué he aprendido, aplicación práctica y dudas pendientes) de forma muy estructurada." },
+      { block: "Socrative", q: "¿Qué otra modalidad competitiva lúdica ofrece Socrative para dinamizar la revisión de contenidos en grupo?", options: ["A) El simulador de vuelo en Realidad Virtual 3D.", "B) La \"Space Race\" (Carrera Espacial), donde los equipos avanzan según sus aciertos", "C) La creación de muros colaborativos tipo Kanban.", "D) El sistema de subtitulado automático por IA."], correct: 1, exp: "La Carrera Espacial convierte la corrección de un test en una competencia visual por equipos muy motivadora y ágil en el aula." },
+      { block: "Socrative", q: "¿Qué tipo de analítica inmediata genera Socrative para el docente tras la entrega de una prueba formativa?", options: ["A) Un gráfico de consumo de batería de los teléfonos móviles.", "B) Una matriz de resultados codificada por colores que muestra instantáneamente los aciertos y fallos por alumno", "C) Un mapa geolocalizado por GPS de la ubicación de los estudiantes.", "D) Una transcripción en texto plano de las notas de voz."], correct: 1, exp: "Ofrece un panel (Live Analytics) muy limpio que permite detectar en segundos qué preguntas han fallado masivamente para redirigir la explicación." },
+      // Bloque 8
+      { block: "Popplet", q: "¿Cuál es la principal seña de identidad y ventaja de Popplet en el ecosistema de herramientas de mapas conceptuales?", options: ["A) Su enorme complejidad de herramientas de edición de vídeo 3D.", "B) Su interfaz minimalista, ligera y visual centrada en conectar burbujas e ideas de forma muy sencilla", "C) Su capacidad para retransmitir clases en streaming de alta definición.", "D) Su integración nativa con software militar de cifrado de datos."], correct: 1, exp: "Popplet destaca por su sencillez extrema, lo que la hace perfecta para que los alumnos estructuren relaciones lógicas básicas sin curvas de aprendizaje pesadas." },
+      { block: "Popplet", q: "¿Cómo encaja Popplet en el desarrollo de destrezas de pensamiento dentro de una estrategia de Mobile Learning?", options: ["A) Permite calcular automáticamente la nota media del expediente académico.", "B) Facilita la estructuración gráfica de conceptos y la relación causa-efecto o desglose de partes", "C) Genera avatares tridimensionales para mundos virtuales 3D.", "D) Actúa como un servidor MDM de control de dispositivos."], correct: 1, exp: "Funciona como un andamiaje visual ágil para que el cerebro del estudiante organice jerárquicamente la información procesada." },
+      { block: "Popplet", q: "¿Qué ventaja operativa ofrece Popplet para su uso directo desde teléfonos inteligentes o tablets?", options: ["A) Requiere la instalación de tarjetas gráficas dedicadas de alta potencia.", "B) Funciona con una navegación táctil muy intuitiva para crear, mover y enlazar notas en formato burbuja", "C) Obliga a usar doble pantalla horizontal obligatoriamente.", "D) Impide la colaboración simultánea entre varios usuarios."], correct: 1, exp: "Su ligereza visual evita la saturación en pantallas reducidas de dispositivos móviles, cumpliendo con los criterios de usabilidad táctil." },
+      // Bloque 9
+      { block: "Poll Everywhere", q: "¿Qué característica diferencial histórica ha caracterizado a Poll Everywhere frente a otras herramientas de votación móvil?", options: ["A) La necesidad de usar exclusivamente cámaras fotográficas analógicas.", "B) La posibilidad de responder no solo vía web móvil, sino también mediante mensajes de texto cortos (SMS)", "C) Su diseño exclusivo para ordenadores de sobremesa antiguos.", "D) Su prohibición absoluta en el territorio de la Unión Europea."], correct: 1, exp: "Aunque hoy predomina su uso web, nació con la flexibilidad multimodal de admitir respuestas por web y pasarelas de mensajería rápida." },
+      { block: "Poll Everywhere", q: "¿Qué objetivo pedagógico cumple la inserción de un sondeo rápido con Poll Everywhere en mitad de una exposición teórica?", options: ["A) Sancionar al alumno que no haya entregado los deberes impresos.", "B) Actuar como interruptor atencional (reseteo cognitivo) y comprobar la asimilación del punto expuesto", "C) Rellenar los huecos de silencio administrativo en la sesión.", "D) Sustituir por completo la realización de exámenes finales."], correct: 1, exp: "Rompe la pasividad de la escucha continuada y permite calibrar al instante el nivel de comprensión del grupo." },
+      { block: "Poll Everywhere", q: "¿Cómo se visualizan los resultados de las votaciones en Poll Everywhere durante la sesión presencial o virtual?", options: ["A) Mediante un informe impreso enviado por correo postal.", "B) En gráficos dinámicos animados que se actualizan segundo a segundo en la pantalla proyectada", "C) En un documento de texto plano sin formato visual.", "D) En archivos de audio ocultos accesibles solo por el profesor."], correct: 1, exp: "El feedback visual inmediato en pantalla genera un impacto dinámico excelente para estructurar debates instantáneos basados en datos." },
+      // Bloque 10
+      { block: "Lino (Lino It)", q: "¿Qué tipo de estructura visual elemental utiliza Lino (Lino It) para el trabajo colaborativo online?", options: ["A) Un entorno de realidad virtual tridimensional fotorrealista.", "B) Un corcho o panel virtual limpio donde se pegan notas adhesivas (post-its) de colores", "C) Una línea de tiempo cronológica vertical obligatoria.", "D) Una hoja de cálculo contable con fórmulas matemáticas avanzadas."], correct: 1, exp: "Lino It es una alternativa ultraligera inspirada en los tablones de corcho físicos, ideal para lluvias de ideas rápidas y sencillas." },
+      { block: "Lino (Lino It)", q: "¿Por qué resulta una herramienta muy adecuada para plantear \"Exit Tickets\" (Tickets de Salida) ligeros?", options: ["A) Porque exige un registro de usuario de más de 30 campos obligatorios.", "B) Porque permite a los alumnos dejar notas rápidas con reflexiones o dudas sin fricción técnica", "C) Porque bloquea automáticamente los navegadores de los estudiantes al terminar.", "D) Porque cifra con claves de alta seguridad cada post-it publicado."], correct: 1, exp: "Su extrema simplicidad permite configurar un espacio de cierre donde cada alumno deja su nota de síntesis en segundos." },
+      { block: "Lino (Lino It)", q: "¿Qué ventaja técnica presenta Lino frente a herramientas de muros más pesadas en entornos con limitaciones de red o dispositivos modestos?", options: ["A) Requiere conexiones de fibra óptica simétrica de 1 Gbps obligatorias.", "B) Su arquitectura web es sumamente ligera, consumiendo muy pocos recursos de datos y memoria en el móvil", "C) Solo funciona instalando archivos ejecutables locales en Windows.", "D) Impide la visualización de imágenes pesadas por seguridad."], correct: 1, exp: "Al carecer de elementos superfluos, carga con extrema rapidez incluso en terminales móviles modestos o zonas con cobertura de red limitada." }
+    ];
+
+    const sanitariesJokes = [
+      "¿Qué le dice un hueso a otro en una rampa de evacuación? —¡Nos vemos en la fractura!",
+      "¿Por qué los sanitarios son buenos guardametas? —Porque nunca dejan pasar un soplo.",
+      "Doctor, doctor, ¿qué tal salió la operación de RCP? —Bueno, el paciente está bien, ¡pero el muñeco no sobrevivió!",
+      "¿Cuál es el colmo de un enfermero? —Tener un día 'sangriento' en el trabajo y pedir una tirita de descanso.",
+      "¿Qué dice un glóbulo rojo en una fiesta de primeros auxilios? —¡Menudo ambiente más circulante!"
+    ];
+
+    // --- ESTADO DEL JUEGO ---
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let maxStreak = 0;
+    let correctCount = 0;
+    let surpriseCount = 0;
+    let jokeIndex = 0;
+
+    // Modificadores de la pregunta actual
+    let currentMultiplier = 1;
+    let hasStreakShield = false;
+    let isFiftyFiftyActive = false;
+    let lastSurpriseIndex = -10;
+
+    // --- ALGORITMO FISHER-YATES ---
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // --- UTILIDADES ---
+    function cleanOptionText(text) {
+      return text.replace(/^[A-D]\)\s*/, '').trim();
+    }
+
+    function formatText(str) {
+      return str.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    }
+
+    // --- INICIALIZACIÓN ---
+    function initGame() {
+      // Barajar preguntas
+      questions = shuffle(rawQuestions).map(q => {
+        // Barajar opciones guardando la respuesta correcta original
+        const correctText = q.options[q.correct];
+        const shuffledOpts = shuffle(q.options);
+        const newCorrectIndex = shuffledOpts.indexOf(correctText);
+        return {
+          ...q,
+          options: shuffledOpts,
+          correct: newCorrectIndex
+        };
+      });
+
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+      maxStreak = 0;
+      correctCount = 0;
+      surpriseCount = 0;
+      jokeIndex = 0;
+      lastSurpriseIndex = -10;
+
+      document.getElementById('screen-welcome').classList.add('hidden');
+      document.getElementById('screen-results').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+
+      renderQuestion();
+    }
+
+    // --- RENDERIZAR PREGUNTA ---
+    function renderQuestion() {
+      const q = questions[currentIndex];
+
+      // Modificadores por defecto
+      currentMultiplier = 1;
+      hasStreakShield = false;
+      isFiftyFiftyActive = false;
+
+      // Reset UI
+      document.getElementById('feedback-panel').classList.add('hidden');
+      document.getElementById('humor-card').classList.add('hidden');
+      document.getElementById('btn-next').classList.add('hidden');
+      document.getElementById('badge-surprise').classList.add('hidden');
+
+      // Actualizar cabecera
+      document.getElementById('txt-progress').innerText = `${currentIndex + 1}/${questions.length}`;
+      document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+      document.getElementById('txt-score').innerText = `Puntos: ${score}`;
+      
+      let streakMult = 1;
+      if (streak >= 4) streakMult = 3;
+      else if (streak === 3) streakMult = 2.5;
+      else if (streak === 2) streakMult = 2;
+      else if (streak === 1) streakMult = 1.5;
+      document.getElementById('txt-streak').innerText = `🔥 Racha: x${streakMult}`;
+
+      // Detalle de pregunta
+      document.getElementById('badge-block').innerText = q.block;
+      document.getElementById('txt-question').innerHTML = formatText(q.q);
+
+      // Evaluar si se activa Sorpresa PREVIA (Probabilidad ≈25%, nunca en las 2 primeras, no seguidas, max 1 por cada 5)
+      let triggerSurprise = false;
+      if (currentIndex >= 2 && (currentIndex - lastSurpriseIndex >= 2)) {
+        if (Math.random() < 0.28) {
+          triggerSurprise = true;
+          lastSurpriseIndex = currentIndex;
+          surpriseCount++;
+        }
+      }
+
+      if (triggerSurprise) {
+        setupSurprisePre();
+      } else {
+        buildOptionsGrid();
+      }
+    }
+
+    function setupSurprisePre() {
+      const types = ['double', 'fifty', 'shield'];
+      const chosen = types[Math.floor(Math.random() * types.length)];
+
+      const modal = document.getElementById('modal-surprise');
+      const icon = document.getElementById('modal-icon');
+      const title = document.getElementById('modal-title');
+      const desc = document.getElementById('modal-desc');
+
+      if (chosen === 'double') {
+        currentMultiplier = 2;
+        icon.innerText = '⚡';
+        title.innerText = '¡Pregunta Doble!';
+        desc.innerText = 'Los puntos ganados en esta pregunta valdrán el DOBLE (x2).';
+      } else if (chosen === 'fifty') {
+        isFiftyFiftyActive = true;
+        icon.innerText = '🎁';
+        title.innerText = '¡Comodín 50/50!';
+        desc.innerText = 'Se eliminarán dos opciones incorrectas para facilitarte la respuesta.';
+      } else if (chosen === 'shield') {
+        hasStreakShield = true;
+        icon.innerText = '🛡️';
+        title.innerText = '¡Escudo de Racha!';
+        desc.innerText = 'Si fallas esta pregunta, tu racha activa no se perderá.';
+      }
+
+      modal.classList.remove('hidden');
+      document.getElementById('modal-btn').onclick = () => {
+        modal.classList.add('hidden');
+        if (currentMultiplier === 2) {
+          const badge = document.getElementById('badge-surprise');
+          badge.innerText = '⚡ Doble Puntuación';
+          badge.classList.remove('hidden');
+        } else if (hasStreakShield) {
+          const badge = document.getElementById('badge-surprise');
+          badge.innerText = '🛡️ Escudo Activo';
+          badge.classList.remove('hidden');
+        }
+        buildOptionsGrid();
+      };
+    }
+
+    function buildOptionsGrid() {
+      const q = questions[currentIndex];
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      // Determinar opciones a deshabilitar si 50/50 está activo
+      let disabledIndices = [];
+      if (isFiftyFiftyActive) {
+        let incorrects = [0, 1, 2, 3].filter(i => i !== q.correct);
+        incorrects = shuffle(incorrects);
+        disabledIndices = [incorrects[0], incorrects[1]];
+      }
+
+      const keys = ['A', 'B', 'C', 'D'];
+      q.options.forEach((optText, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-option';
+        btn.dataset.index = index;
+
+        const keySpan = `<span class="btn-key">${keys[index]}</span>`;
+        const textClean = cleanOptionText(optText);
+        btn.innerHTML = `<div>${keySpan} ${textClean}</div>`;
+
+        if (disabledIndices.includes(index)) {
+          btn.classList.add('disabled');
+          btn.disabled = true;
+          btn.style.opacity = '0.2';
+        } else {
+          btn.onclick = () => selectOption(index);
+        }
+
+        container.appendChild(btn);
+      });
+    }
+
+    // --- SELECCIÓN DE RESPUESTA ---
+    function selectOption(selectedIndex) {
+      const q = questions[currentIndex];
+      const buttons = document.querySelectorAll('.btn-option');
+
+      // Deshabilitar todas las opciones
+      buttons.forEach(btn => btn.disabled = true);
+
+      const isCorrect = selectedIndex === q.correct;
+      const feedbackPanel = document.getElementById('feedback-panel');
+      const feedbackTitle = document.getElementById('feedback-title');
+      const feedbackExp = document.getElementById('feedback-explanation');
+      const humorCard = document.getElementById('humor-card');
+
+      feedbackPanel.classList.remove('hidden', 'correct', 'incorrect');
+
+      if (isCorrect) {
+        buttons[selectedIndex].classList.add('correct');
+
+        // Cálculo de racha y puntos
+        let streakMult = 1;
+        if (streak >= 4) streakMult = 3;
+        else if (streak === 3) streakMult = 2.5;
+        else if (streak === 2) streakMult = 2;
+        else if (streak === 1) streakMult = 1.5;
+
+        const pointsGained = Math.round(100 * streakMult * currentMultiplier);
+        score += pointsGained;
+        streak++;
+        correctCount++;
+        if (streak > maxStreak) maxStreak = streak;
+
+        feedbackPanel.classList.add('correct');
+        const praises = ["¡Excelente!", "¡Sublime!", "¡Brillante!", "¡Gran dominio!", "¡Respuesta impecable!"];
+        const praise = praises[Math.floor(Math.random() * praises.length)];
+        feedbackTitle.innerHTML = `<span style="color: var(--accent-emerald);">${praise}</span> +${pointsGained} pts`;
+
+        // Sorpresa POST-Acierto: Cofre Sorpresa (≈18%)
+        let bonusPoints = 0;
+        if (Math.random() < 0.18) {
+          const chests = [50, 100, 150, 200];
+          bonusPoints = chests[Math.floor(Math.random() * chests.length)];
+          score += bonusPoints;
+          surpriseCount++;
+          feedbackTitle.innerHTML += `<br><span style="color: var(--gold); font-size: 0.95rem;">🎁 ¡Cofre Sorpresa encontrado! +${bonusPoints} pts extra</span>`;
+          triggerConfetti(30);
+        }
+
+        // Chiste post-acierto (≈17%)
+        if (Math.random() < 0.17) {
+          showHumorJoke();
+        }
+
+      } else {
+        buttons[selectedIndex].classList.add('incorrect');
+        buttons[q.correct].classList.add('correct');
+
+        feedbackPanel.classList.add('incorrect');
+        feedbackTitle.innerHTML = `<span style="color: #f87171;">¡Incorrecto!</span>`;
+
+        if (hasStreakShield) {
+          feedbackTitle.innerHTML += ` <span style="font-size: 0.85rem; color: var(--gold);">(🛡️ Escudo protegió tu racha)</span>`;
+        } else {
+          streak = 0;
+        }
+
+        // Chiste post-fallo (≈40%)
+        if (Math.random() < 0.40) {
+          showHumorJoke();
+        }
+      }
+
+      // Explicación Didáctica
+      feedbackExp.innerHTML = `<strong>Explicación didáctica:</strong> ${formatText(q.exp)}`;
+
+      // Actualizar marcador
+      document.getElementById('txt-score').innerText = `Puntos: ${score}`;
+
+      // Botón Siguiente
+      const btnNext = document.getElementById('btn-next');
+      btnNext.classList.remove('hidden');
+      if (currentIndex === questions.length - 1) {
+        btnNext.innerHTML = `<span>Ver Resultados</span> 🏆`;
+      } else {
+        btnNext.innerHTML = `<span>Siguiente Pregunta</span> ➔`;
+      }
+      btnNext.onclick = advanceQuestion;
+    }
+
+    function showHumorJoke() {
+      if (jokeIndex < sanitariesJokes.length) {
+        const humorCard = document.getElementById('humor-card');
+        document.getElementById('humor-text').innerText = sanitariesJokes[jokeIndex];
+        humorCard.classList.remove('hidden');
+        jokeIndex++;
+      }
+    }
+
+    function advanceQuestion() {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    // --- PANTALLA DE RESULTADOS ---
+    function showResults() {
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-results').classList.remove('hidden');
+
+      const pct = Math.round((correctCount / questions.length) * 100);
+      document.getElementById('res-score').innerText = score;
+      document.getElementById('res-accuracy').innerText = `${correctCount}/${questions.length} (${pct}%)`;
+      document.getElementById('res-streak').innerText = `🔥 ${maxStreak}`;
+      document.getElementById('res-surprises').innerText = `🎁 ${surpriseCount}`;
+
+      const emoji = document.getElementById('res-emoji');
+      const msg = document.getElementById('res-message');
+
+      if (pct >= 90) {
+        emoji.innerText = '🏆';
+        msg.innerText = '¡Sobresaliente! Dominio absoluto de las herramientas interactivas.';
+        triggerConfetti(100);
+      } else if (pct >= 75) {
+        emoji.innerText = '🌟';
+        msg.innerText = '¡Gran trabajo! Tienes una base sólida en M-Learning.';
+        triggerConfetti(50);
+      } else if (pct >= 60) {
+        emoji.innerText = '👍';
+        msg.innerText = '¡Buen esfuerzo! Has superado la prueba con éxito.';
+      } else if (pct >= 40) {
+        emoji.innerText = '🩹';
+        msg.innerText = 'Necesitas repasar algunos conceptos clave para afianzar.';
+      } else {
+        emoji.innerText = '🚨';
+        msg.innerText = '¡Atención! Es recomendable revisar a fondo los contenidos.';
+      }
+    }
+
+    // --- EFECTO CONFETI NATIVO ---
+    function triggerConfetti(amount) {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#10b981', '#34d399', '#fbbf24', '#f43f5e', '#60a5fa'];
+
+      for (let i = 0; i < amount; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.7) * 12,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          size: Math.random() * 8 + 4,
+          life: 100
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        particles.forEach(p => {
+          if (p.life > 0) {
+            active = true;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.2; // Gravedad
+            p.life--;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+          }
+        });
+        if (active) requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    // --- CONTROLES DE TECLADO ---
+    document.addEventListener('keydown', (e) => {
+      // Ignorar si el modal de sorpresa está abierto
+      if (!document.getElementById('modal-surprise').classList.contains('hidden')) {
+        if (e.key === 'Enter') {
+          document.getElementById('modal-btn').click();
+        }
+        return;
+      }
+
+      // Si estamos en juego
+      if (!document.getElementById('screen-game').classList.contains('hidden')) {
+        const btnNext = document.getElementById('btn-next');
+        if (!btnNext.classList.contains('hidden') && e.key === 'Enter') {
+          btnNext.click();
+          return;
+        }
+
+        const keyMap = { 'a': 0, 'A': 0, 'b': 1, 'B': 1, 'c': 2, 'C': 2, 'd': 3, 'D': 3 };
+        if (keyMap.hasOwnProperty(e.key)) {
+          const idx = keyMap[e.key];
+          const buttons = document.querySelectorAll('.btn-option');
+          if (buttons[idx] && !buttons[idx].disabled) {
+            buttons[idx].click();
+          }
+        }
+      }
+    });
+
+    // Event listeners iniciales
+    document.getElementById('btn-start').onclick = initGame;
+    document.getElementById('btn-restart').onclick = initGame;
+  </script>
+</body>
+</html>
